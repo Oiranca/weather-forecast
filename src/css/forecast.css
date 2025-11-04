@@ -1,0 +1,134 @@
+.forecast-section {
+  width: 100%;
+}
+
+.forecast-title {
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: var(--spacing-md);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.forecast-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.forecast-day-card {
+  background: var(--bg-primary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.forecast-day-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.forecast-day-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  text-align: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.forecast-icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: var(--spacing-xs) 0;
+}
+
+.forecast-weather-icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.forecast-temperature {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  text-align: center;
+}
+
+.forecast-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+  text-align: center;
+  margin-top: var(--spacing-xs);
+}
+
+@media (max-width: 768px) {
+  .forecast-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+
+  .forecast-day-card {
+    padding: var(--spacing-sm);
+  }
+
+  .forecast-weather-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .forecast-temperature {
+    font-size: 1.25rem;
+  }
+
+  .forecast-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .forecast-container {
+    grid-template-columns: 1fr;
+  }
+
+  .forecast-day-card {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .forecast-day-name {
+    text-align: left;
+    flex: 1;
+  }
+
+  .forecast-icon-container {
+    margin: 0;
+  }
+
+  .forecast-weather-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .forecast-temperature {
+    font-size: 1.125rem;
+    text-align: right;
+  }
+
+  .forecast-description {
+    display: none;
+  }
+}
+

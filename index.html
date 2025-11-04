@@ -3,31 +3,71 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="HTML CSS Template" />
-    <meta name="keywords" content="template, html, css" />
-    <meta name="author" content="Your Name" />
-    <title>HTML CSS Template</title>
-
-    <!-- CSS -->
+    <meta name="description" content="Weather Forecast App - Get current weather and 4-day forecast for any city" />
+    <title>Weather Forecast</title>
     <link rel="stylesheet" href="src/css/main.css" />
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico" />
+    <link rel="stylesheet" href="src/css/forecast.css" />
   </head>
   <body>
-    <!-- Header -->
-    <header>
-      <!-- Navigation content here -->
-    </header>
+    <div class="app-container">
+      <header class="app-header">
+        <h1 class="app-title">Weather Forecast</h1>
+      </header>
 
-    <!-- Main Content -->
-    <main>
-      <!-- Main content here -->
-    </main>
+      <main class="app-main">
+        <section class="search-section">
+          <div class="search-container">
+            <input
+              type="text"
+              id="city-input"
+              class="search-input"
+              placeholder="Enter city name..."
+              autocomplete="off"
+            />
+            <button id="search-button" class="search-button">Search</button>
+          </div>
+          <div id="error-message" class="error-message" role="alert"></div>
+        </section>
 
-    <!-- Footer -->
-    <footer>
-      <!-- Footer content here -->
-    </footer>
+        <section id="current-weather-section" class="current-weather-section hidden">
+          <div class="current-weather-card">
+            <div class="weather-header">
+              <h2 id="current-city" class="city-name"></h2>
+              <div id="current-date" class="current-date"></div>
+            </div>
+            <div class="weather-main">
+              <div class="temperature-container">
+                <img id="current-weather-icon" class="weather-icon-large" src="" alt="Weather icon" />
+                <div class="temperature-info">
+                  <span id="current-temperature" class="temperature-value"></span>
+                  <span class="temperature-unit">°C</span>
+                </div>
+              </div>
+              <div id="current-description" class="weather-description"></div>
+            </div>
+            <div class="weather-details">
+              <div class="detail-item">
+                <span class="detail-label">Humidity</span>
+                <span id="current-humidity" class="detail-value"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Wind Speed</span>
+                <span id="current-wind-speed" class="detail-value"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="forecast-section" class="forecast-section hidden">
+          <h2 class="forecast-title">4-Day Forecast</h2>
+          <div id="forecast-container" class="forecast-container">
+          </div>
+        </section>
+      </main>
+
+     
+    </div>
+
+    <script src="src/js/main.js"></script>
   </body>
 </html>
