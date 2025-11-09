@@ -1,225 +1,99 @@
-const cityInput = document.getElementById('city-input');
-const searchButton = document.getElementById('search-button');
-const errorMessage = document.getElementById('error-message');
-const currentWeatherSection = document.getElementById(
-  'current-weather-section',
-);
-const currentCity = document.getElementById('current-city');
-const currentDate = document.getElementById('current-date');
-const currentTemperature = document.getElementById('current-temperature');
-const currentWeatherIcon = document.getElementById('current-weather-icon');
-const currentDescription = document.getElementById('current-description');
-const currentHumidity = document.getElementById('current-humidity');
-const currentWindSpeed = document.getElementById('current-wind-speed');
-const forecastSection = document.getElementById('forecast-section');
-const forecastContainer = document.getElementById('forecast-container');
+const elements = {
+  cityInput: document.getElementById('city-input'),
+  searchButton: document.getElementById('search-button'),
+  errorMessage: document.getElementById('error-message'),
+  weatherSection: document.getElementById('weather-section'),
+  forecastContainer: document.getElementById('forecast-container'),
+};
 
-async function getWeatherIconUrl(iconCode) {
-  return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
-}
+const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+const API_URL = import.meta.env.VITE_OPENWEATHER_API_URL;
+const ICON_URL = import.meta.env.VITE_OPENWEATHER_ICON_URL;
 
-async function fetchWeatherData(city) {
-  const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
-  const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric&lang=es`;
-
-  try {
-     const forecastResponse = await fetch(forecastUrl);
-    if (!forecastResponse.ok) {
-      throw new Error('No se pudo obtener el pronóstico');
-    }
-    const forecastData = await forecastResponse.json();
-    await displayForecast(forecastData);
-    await displayCurrentWeather(forecastData);
-   } catch (error) {
-    showError(error.message);
-  }
-}
-
-function formatDate(timestamp) {
-  const date = new Date(timestamp);
-  const options = {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return {
+    weekday: date.toLocaleDateString('es-ES', { weekday: 'long' }),
+    date: date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }),
   };
-  return date.toLocaleDateString('es-ES', options);
-}
+};
 
-function showError(message) {
-  errorMessage.textContent = message;
-  errorMessage.classList.add('show');
-  setTimeout(() => {
-    errorMessage.classList.remove('show');
-  }, 5000);
-}
+const showError = (message) => {
+  elements.errorMessage.textContent = message;
+  elements.errorMessage.classList.add('show');
+  setTimeout(() => elements.errorMessage.classList.remove('show'), 5000);
+};
 
-function hideError() {
-  errorMessage.classList.remove('show');
-}
-
-async function displayCurrentWeather(data) {
-  if (!data || !data.city.name) {
-    showError('Invalid weather data received');
-    return;
-  }
-
-  hideError();
-  currentCity.textContent = data.city.name;
-  currentDate.textContent = formatDate(Date.now());
-  currentTemperature.textContent = Math.round(data.list[0].main.temp);
-  currentDescription.textContent = data.list[0].weather[0].description;
-  currentHumidity.textContent = `${data.list[0].main.humidity}%`;
-  currentWindSpeed.textContent = `${Math.round(data.list[0].wind.speed * 3.6)} km/h`;
-
-  const iconCode = data.list[0].weather[0].icon;
-  currentWeatherIcon.src = await getWeatherIconUrl(iconCode);
-  currentWeatherIcon.alt = data.list[0].weather[0].description;
-
-  currentWeatherSection.classList.remove('hidden');
-}
-
-function clearCurrentWeather() {
-  currentWeatherSection.classList.add('hidden');
-  currentCity.textContent = '';
-  currentDate.textContent = '';
-  currentTemperature.textContent = '';
-  currentDescription.textContent = '';
-  currentHumidity.textContent = '';
-  currentWindSpeed.textContent = '';
-  currentWeatherIcon.src = '';
-}
-
-function handleSearch() {
-  const cityName = cityInput.value.trim();
-
-  if (!cityName) {
-    showError('Please enter a city name');
-    return;
-  }
-
-  clearCurrentWeather();
-  clearForecast();
-
-  if (typeof fetchWeatherData === 'function') {
-    fetchWeatherData(cityName);
-  } else {
-    showError('Weather API not loaded');
-  }
-}
-
-function getDayName(timestamp) {
-  const date = new Date(timestamp * 1000);
-  const options = { weekday: 'long' };
-  return date.toLocaleDateString('es-ES', options);
-}
-
-async function createForecastDayCard(forecastItem) {
-  const dayCard = document.createElement('div');
-  dayCard.className = 'forecast-day-card';
-
-  const dayName = document.createElement('div');
-  dayName.className = 'forecast-day-name';
-  dayName.textContent = getDayName(forecastItem.dt);
-
-  const iconContainer = document.createElement('div');
-  iconContainer.className = 'forecast-icon-container';
-
-  const weatherIcon = document.createElement('img');
-  weatherIcon.className = 'forecast-weather-icon';
-  weatherIcon.src = await getWeatherIconUrl(forecastItem.weather[0].icon);
-  weatherIcon.alt = forecastItem.weather[0].description;
-
-  iconContainer.appendChild(weatherIcon);
-
-  const temperature = document.createElement('div');
-  temperature.className = 'forecast-temperature';
-  temperature.textContent = `${Math.round(forecastItem.main.temp)}°C`;
-
-  const description = document.createElement('div');
-  description.className = 'forecast-description';
-  description.textContent = forecastItem.weather[0].description;
-
-  dayCard.appendChild(dayName);
-  dayCard.appendChild(iconContainer);
-  dayCard.appendChild(temperature);
-  dayCard.appendChild(description);
-
-  return dayCard;
-}
-
-function getForecastForNextFourDays(forecastData) {
-  if (!forecastData || !forecastData.list) {
-    return [];
-  }
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const daysMap = new Map();
-  const result = [];
-
-  forecastData.list.forEach(item => {
-    const itemDate = new Date(item.dt * 1000);
-    itemDate.setHours(0, 0, 0, 0);
-
-    if (itemDate <= today) {
-      return;
+const getNextDays = (list) => {
+  const seen = new Set();
+  return list.filter(item => {
+    const day = item.dt_txt.split(' ')[0];
+    if (!seen.has(day) && day !== new Date().toISOString().split('T')[0]) {
+      seen.add(day);
+      return true;
     }
+    return false;
+  }).slice(0, 4);
+};
 
-    const dayKey = itemDate.getTime();
+const displayWeather = (data) => {
+  const current = data.list[0];
+  const { weekday, date } = formatDate(current.dt_txt);
+  
+  elements.weatherSection.innerHTML = `
+    <div class="current-weather">
+      <h2>${data.city.name}</h2>
+      <p class="weekday">${weekday}</p>
+      <p class="date">${date}</p>
+      <img src="${ICON_URL}${current.weather[0].icon}@2x.png" alt="${current.weather[0].description}">
+      <div class="temp">${Math.round(current.main.temp)}°C</div>
+      <p class="description">${current.weather[0].description}</p>
+      <div class="details">
+        <span>💧 ${current.main.humidity}%</span>
+        <span>💨 ${Math.round(current.wind.speed * 3.6)} km/h</span>
+      </div>
+    </div>
+  `;
+  
+  elements.forecastContainer.innerHTML = getNextDays(data.list).map(item => {
+    const { weekday, date } = formatDate(item.dt_txt);
+    return `
+      <div class="forecast-card">
+        <p class="forecast-weekday">${weekday}</p>
+        <p class="forecast-date">${date}</p>
+        <img src="${ICON_URL}${item.weather[0].icon}@2x.png" alt="${item.weather[0].description}">
+        <p class="forecast-temp">${Math.round(item.main.temp)}°C</p>
+        <p class="forecast-desc">${item.weather[0].description}</p>
+      </div>
+    `;
+  }).join('');
+  
+  elements.weatherSection.classList.remove('hidden');
+};
 
-    if (!daysMap.has(dayKey)) {
-      daysMap.set(dayKey, item);
-      result.push(item);
+const fetchWeather = async (city) => {
+  try {
+    const response = await fetch(`${API_URL}?q=${city}&appid=${API_KEY}&units=metric&lang=es`);
+    if (!response.ok) throw new Error('Ciudad no encontrada');
+    
+    const data = await response.json();
+    displayWeather(data);
+  } catch (error) {
+    showError(error.message);
+    elements.weatherSection.classList.add('hidden');
+  }
+};
 
-      if (result.length >= 4) {
-        return;
-      }
-    }
-  });
-
-  return result.slice(0, 4);
-}
-
-async function displayForecast(forecastData) {
-  if (!forecastData || !forecastData.list) {
-    forecastSection.classList.add('hidden');
+const handleSearch = () => {
+  const city = elements.cityInput.value.trim();
+  if (!city) {
+    showError('Por favor introduce una ciudad');
     return;
   }
+  fetchWeather(city);
+};
 
-  const nextFourDays = getForecastForNextFourDays(forecastData);
-
-  if (nextFourDays.length === 0) {
-    forecastSection.classList.add('hidden');
-    return;
-  }
-
-  forecastContainer.innerHTML = '';
-
-  for (const dayData of nextFourDays) {
-    const dayCard = await createForecastDayCard(dayData);
-    forecastContainer.appendChild(dayCard);
-  }
-
-  forecastSection.classList.remove('hidden');
-}
-
-function clearForecast() {
-  forecastSection.classList.add('hidden');
-  forecastContainer.innerHTML = '';
-}
-
-searchButton.addEventListener('click', handleSearch);
-
-cityInput.addEventListener('keypress', event => {
-  if (event.key === 'Enter') {
-    handleSearch();
-  }
+elements.searchButton.addEventListener('click', handleSearch);
+elements.cityInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') handleSearch();
 });
-
-document.displayCurrentWeather = displayCurrentWeather;
-document.displayForecast = displayForecast;
-document.showError = showError;
-document.clearCurrentWeather = clearCurrentWeather;
-document.clearForecast = clearForecast;
