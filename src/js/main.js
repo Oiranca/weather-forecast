@@ -1,7 +1,9 @@
 const cityInput = document.getElementById('city-input');
 const searchButton = document.getElementById('search-button');
 const errorMessage = document.getElementById('error-message');
-const currentWeatherSection = document.getElementById('current-weather-section');
+const currentWeatherSection = document.getElementById(
+  'current-weather-section',
+);
 const currentCity = document.getElementById('current-city');
 const currentDate = document.getElementById('current-date');
 const currentTemperature = document.getElementById('current-temperature');
@@ -12,14 +14,36 @@ const currentWindSpeed = document.getElementById('current-wind-speed');
 const forecastSection = document.getElementById('forecast-section');
 const forecastContainer = document.getElementById('forecast-container');
 
-function getWeatherIconUrl(iconCode) {
+async function getWeatherIconUrl(iconCode) {
   return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+}
+
+async function fetchWeatherData(city) {
+  const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+  const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric&lang=es`;
+
+  try {
+     const forecastResponse = await fetch(forecastUrl);
+    if (!forecastResponse.ok) {
+      throw new Error('No se pudo obtener el pronóstico');
+    }
+    const forecastData = await forecastResponse.json();
+    await displayForecast(forecastData);
+    await displayCurrentWeather(forecastData);
+   } catch (error) {
+    showError(error.message);
+  }
 }
 
 function formatDate(timestamp) {
   const date = new Date(timestamp);
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
+  const options = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
+  return date.toLocaleDateString('es-ES', options);
 }
 
 function showError(message) {
@@ -34,23 +58,23 @@ function hideError() {
   errorMessage.classList.remove('show');
 }
 
-function displayCurrentWeather(data) {
-  if (!data || !data.name) {
+async function displayCurrentWeather(data) {
+  if (!data || !data.city.name) {
     showError('Invalid weather data received');
     return;
   }
 
   hideError();
-  currentCity.textContent = data.name;
+  currentCity.textContent = data.city.name;
   currentDate.textContent = formatDate(Date.now());
-  currentTemperature.textContent = Math.round(data.main.temp);
-  currentDescription.textContent = data.weather[0].description;
-  currentHumidity.textContent = `${data.main.humidity}%`;
-  currentWindSpeed.textContent = `${Math.round(data.wind.speed * 3.6)} km/h`;
-  
-  const iconCode = data.weather[0].icon;
-  currentWeatherIcon.src = getWeatherIconUrl(iconCode);
-  currentWeatherIcon.alt = data.weather[0].description;
+  currentTemperature.textContent = Math.round(data.list[0].main.temp);
+  currentDescription.textContent = data.list[0].weather[0].description;
+  currentHumidity.textContent = `${data.list[0].main.humidity}%`;
+  currentWindSpeed.textContent = `${Math.round(data.list[0].wind.speed * 3.6)} km/h`;
+
+  const iconCode = data.list[0].weather[0].icon;
+  currentWeatherIcon.src = await getWeatherIconUrl(iconCode);
+  currentWeatherIcon.alt = data.list[0].weather[0].description;
 
   currentWeatherSection.classList.remove('hidden');
 }
@@ -68,23 +92,29 @@ function clearCurrentWeather() {
 
 function handleSearch() {
   const cityName = cityInput.value.trim();
-  
+
   if (!cityName) {
     showError('Please enter a city name');
     return;
   }
 
   clearCurrentWeather();
-  window.dispatchEvent(new CustomEvent('searchCity', { detail: { city: cityName } }));
+  clearForecast();
+
+  if (typeof fetchWeatherData === 'function') {
+    fetchWeatherData(cityName);
+  } else {
+    showError('Weather API not loaded');
+  }
 }
 
 function getDayName(timestamp) {
   const date = new Date(timestamp * 1000);
   const options = { weekday: 'long' };
-  return date.toLocaleDateString('en-US', options);
+  return date.toLocaleDateString('es-ES', options);
 }
 
-function createForecastDayCard(forecastItem) {
+async function createForecastDayCard(forecastItem) {
   const dayCard = document.createElement('div');
   dayCard.className = 'forecast-day-card';
 
@@ -97,7 +127,7 @@ function createForecastDayCard(forecastItem) {
 
   const weatherIcon = document.createElement('img');
   weatherIcon.className = 'forecast-weather-icon';
-  weatherIcon.src = getWeatherIconUrl(forecastItem.weather[0].icon);
+  weatherIcon.src = await getWeatherIconUrl(forecastItem.weather[0].icon);
   weatherIcon.alt = forecastItem.weather[0].description;
 
   iconContainer.appendChild(weatherIcon);
@@ -118,7 +148,7 @@ function createForecastDayCard(forecastItem) {
   return dayCard;
 }
 
-function getForecastForNext4Days(forecastData) {
+function getForecastForNextFourDays(forecastData) {
   if (!forecastData || !forecastData.list) {
     return [];
   }
@@ -152,25 +182,25 @@ function getForecastForNext4Days(forecastData) {
   return result.slice(0, 4);
 }
 
-function displayForecast(forecastData) {
+async function displayForecast(forecastData) {
   if (!forecastData || !forecastData.list) {
     forecastSection.classList.add('hidden');
     return;
   }
 
-  const next4Days = getForecastForNext4Days(forecastData);
+  const nextFourDays = getForecastForNextFourDays(forecastData);
 
-  if (next4Days.length === 0) {
+  if (nextFourDays.length === 0) {
     forecastSection.classList.add('hidden');
     return;
   }
 
   forecastContainer.innerHTML = '';
 
-  next4Days.forEach(dayData => {
-    const dayCard = createForecastDayCard(dayData);
+  for (const dayData of nextFourDays) {
+    const dayCard = await createForecastDayCard(dayData);
     forecastContainer.appendChild(dayCard);
-  });
+  }
 
   forecastSection.classList.remove('hidden');
 }
@@ -182,22 +212,14 @@ function clearForecast() {
 
 searchButton.addEventListener('click', handleSearch);
 
-cityInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
+cityInput.addEventListener('keypress', event => {
+  if (event.key === 'Enter') {
     handleSearch();
   }
 });
 
-window.addEventListener('currentWeatherData', (event) => {
-  displayCurrentWeather(event.detail);
-});
-
-window.addEventListener('forecastData', (event) => {
-  displayForecast(event.detail);
-});
-
-window.addEventListener('weatherError', (event) => {
-  showError(event.detail.message || 'Failed to fetch weather data');
-  clearCurrentWeather();
-  clearForecast();
-}); 
+document.displayCurrentWeather = displayCurrentWeather;
+document.displayForecast = displayForecast;
+document.showError = showError;
+document.clearCurrentWeather = clearCurrentWeather;
+document.clearForecast = clearForecast;

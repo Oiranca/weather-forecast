@@ -11,7 +11,9 @@
     "lint:js": "eslint \"src/**/*.js\"",
     "format": "prettier --write \"**/*.{html,css,js,json,md}\"",
     "format:check": "prettier --check \"**/*.{html,css,js,json,md}\"",
-    "dev": "echo \"Open index.html in browser for development\"",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "start": "npm run dev"
   },
   "keywords": [
@@ -28,6 +30,7 @@
     "htmlhint": "^1.7.1",
     "prettier": "^3.6.2",
     "stylelint": "^16.24.0",
-    "stylelint-config-standard": "^39.0.0"
+    "stylelint-config-standard": "^39.0.0",
+    "vite": "^7.2.0"
   }
 }

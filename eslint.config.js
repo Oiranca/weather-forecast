@@ -1,20 +1,14 @@
+import { globals } from 'eslint:globals';
+
 module.exports = [
   {
     files: ['**/*.js'],
     ignores: ['eslint.config.js'],
     languageOptions: {
       ecmaVersion: 2024,
-      sourceType: 'script',
+      sourceType: 'module',
       globals: {
-        window: 'readonly',
-        document: 'readonly',
-        console: 'readonly',
-        IntersectionObserver: 'readonly',
-        Element: 'readonly',
-        NodeList: 'readonly',
-        fetch: 'readonly',
-        localStorage: 'readonly',
-        sessionStorage: 'readonly',
+        ...globals.browser,
       },
     },
     rules: {
@@ -57,7 +51,7 @@ module.exports = [
     files: ['eslint.config.js'],
     languageOptions: {
       ecmaVersion: 2024,
-      sourceType: 'script',
+      sourceType: 'module',
       globals: {
         module: 'writable',
         require: 'readonly',
