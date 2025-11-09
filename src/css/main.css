@@ -99,8 +99,18 @@ h1 {
   margin-bottom: 0.5rem;
 }
 
+.current-weather .weekday,
 .current-weather .date {
   color: #666;
+}
+
+.current-weather .weekday {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.current-weather .date {
   margin-bottom: 1rem;
 }
 
@@ -149,15 +159,18 @@ h1 {
 .forecast-card:hover {
   transform: translateY(-5px);
 }
-.forecast-weekday{
+
+.forecast-weekday {
   font-size: 1.25rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
   color: #334155;
+  text-transform: capitalize;
 }
+
 .forecast-date {
   font-size: 0.75rem;
-  font-weight:600;
+  font-weight: 600;
   margin-bottom: 1rem;
   color: #021561;
 }
